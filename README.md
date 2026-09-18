@@ -153,3 +153,4 @@ For issues or questions, please open a GitHub issue.
 ## 📄 License
 
 MIT License — feel free to use for commercial projects.
+

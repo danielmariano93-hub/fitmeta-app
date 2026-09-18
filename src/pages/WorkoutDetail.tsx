@@ -1,165 +1,126 @@
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React from "react";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Check, Moon, Timer } from "lucide-react";
 import { useApp } from "@/context/AppContext";
-import { ChevronLeft, CheckCircle2, Circle, Zap } from "lucide-react";
 
 const WorkoutDetail: React.FC = () => {
-  const { day } = useParams<{ day: string }>();
+  const { day } = useParams();
   const navigate = useNavigate();
-  const { plan } = useApp();
-  const [notes, setNotes] = useState("");
+  const { plan, toggleExercise, finishWorkout } = useApp();
 
-  if (!plan) {
-    navigate("/onboarding");
-    return null;
-  }
+  if (!plan) return <Navigate to="/" replace />;
 
-  const dayNum = parseInt(day || "1");
-  const workout = plan.workouts[dayNum - 1];
+  const dayNum = Number(day);
+  const workout = plan.workouts.find((w) => w.day === dayNum);
+  if (!workout) return <Navigate to="/app" replace />;
 
-  if (!workout) {
-    return <div>Treino não encontrado</div>;
-  }
-
-  const toggleExercise = (index: number) => {
-    const updatedWorkouts = [...plan.workouts];
-    updatedWorkouts[dayNum - 1].exercises[index].completed =
-      !updatedWorkouts[dayNum - 1].exercises[index].completed;
-    // TODO: persist to database
-  };
-
-  const markWorkoutComplete = () => {
-    const updatedWorkouts = [...plan.workouts];
-    updatedWorkouts[dayNum - 1].completed = true;
-    updatedWorkouts[dayNum - 1].completed_at = new Date().toISOString();
-    // TODO: persist to database
-    navigate("/app");
-  };
-
-  const completedCount = workout.exercises.filter((ex) => ex.completed).length;
-  const isComplete = completedCount === workout.exercises.length;
+  const doneCount = workout.exercises.filter((e) => e.completed).length;
+  const total = workout.exercises.length;
+  const allDone = total > 0 && doneCount === total;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-brand text-white p-6 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <button onClick={() => navigate("/app")} className="p-2 hover:bg-white/10 rounded-lg">
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <div className="text-center flex-1">
-            <p className="text-white/80">Dia {dayNum}</p>
-            <h1 className="text-2xl font-bold">Treino {workout.type}</h1>
-          </div>
-          <div className="w-10" />
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="bg-gradient-brand-soft p-6 border-b border-border">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-foreground">
-              {completedCount} de {workout.exercises.length} exercícios
-            </p>
-            <p className="text-sm font-semibold text-primary">
-              {Math.round((completedCount / workout.exercises.length) * 100)}%
-            </p>
-          </div>
-          <div className="w-full bg-border rounded-full h-3 overflow-hidden">
-            <div
-              className="bg-gradient-brand h-3 transition-all"
-              style={{
-                width: `${(completedCount / workout.exercises.length) * 100}%`,
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Exercises List */}
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="space-y-4">
-          {workout.exercises.map((exercise, idx) => (
-            <div key={exercise.id} className="surface-card flex items-start gap-4">
-              <button
-                onClick={() => toggleExercise(idx)}
-                className="mt-1 flex-shrink-0 text-primary hover:scale-110 transition-transform"
-              >
-                {exercise.completed ? (
-                  <CheckCircle2 className="w-6 h-6" />
-                ) : (
-                  <Circle className="w-6 h-6" />
-                )}
-              </button>
-
-              <div className="flex-1">
-                <h3 className={`font-semibold text-lg ${exercise.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                  {exercise.name}
-                </h3>
-
-                <div className="flex items-center gap-6 mt-3 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4" />
-                    <span>{exercise.sets} séries</span>
-                  </div>
-                  <div>
-                    <span>{exercise.reps} repetições</span>
-                  </div>
-                  {exercise.weight && (
-                    <div>
-                      <span>
-                        {exercise.weight}
-                        {exercise.weight_unit}
-                      </span>
-                    </div>
-                  )}
-                  {exercise.rest_seconds && (
-                    <div>
-                      <span>{exercise.rest_seconds}s repouso</span>
-                    </div>
-                  )}
-                </div>
-
-                {exercise.form_notes && (
-                  <div className="mt-3 p-3 bg-secondary rounded-lg">
-                    <p className="text-xs font-medium text-foreground mb-1">💡 Dica de Forma:</p>
-                    <p className="text-xs text-muted-foreground">{exercise.form_notes}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Notes Section */}
-        <div className="surface-card mt-12">
-          <h3 className="font-semibold text-foreground mb-4">Anotações do Treino</h3>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Como se sentiu? Algo a destacar?"
-            className="input-base h-24 mb-4"
-          />
-          <p className="text-xs text-muted-foreground mb-6">
-            Suas anotações ajudam a IA a personalizar futuros treinos
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-4 mt-12">
-          <button onClick={() => navigate("/app")} className="btn-ghost flex-1">
-            Voltar
-          </button>
+    <div className="min-h-screen bg-bg pb-32">
+      <div className="sticky top-0 z-10 border-b border-line bg-bg/95 backdrop-blur">
+        <div className="mx-auto flex max-w-app items-center gap-3 px-5 py-4">
           <button
-            onClick={markWorkoutComplete}
-            disabled={!isComplete}
-            className={`btn-brand flex-1 ${!isComplete ? "opacity-50 cursor-not-allowed" : ""}`}
+            onClick={() => navigate("/app")}
+            aria-label="Voltar"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-line"
           >
-            {isComplete ? "✓ Treino Completo" : `Faltam ${workout.exercises.length - completedCount}`}
+            <ArrowLeft className="h-4 w-4" />
           </button>
+          <div className="min-w-0">
+            <p className="truncate font-bold">{workout.title}</p>
+            <p className="text-xs text-muted">
+              Dia {workout.day}
+              {!workout.rest_day && ` · Treino ${workout.type}`}
+            </p>
+          </div>
         </div>
       </div>
+
+      <div className="mx-auto max-w-app px-5 pt-6">
+        {workout.rest_day ? (
+          <div className="surface-card p-8 text-center">
+            <Moon className="mx-auto h-8 w-8 text-primary" />
+            <p className="mt-4 font-bold">Hoje o corpo trabalha parado</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              O músculo cresce na recuperação, não no treino. Beba água, durma bem e volte amanhã.
+            </p>
+            <button className="btn-ghost mt-6" onClick={() => navigate("/app")}>
+              Voltar ao plano
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <p className="tnum text-sm font-semibold text-muted">
+                {doneCount} de {total} concluídos
+              </p>
+              <span className="chip">
+                <Timer className="h-3 w-3" />
+                {workout.duration_min} min
+              </span>
+            </div>
+
+            <div className="mt-4 space-y-2.5">
+              {workout.exercises.map((e) => (
+                <button
+                  key={e.id}
+                  onClick={() => toggleExercise(workout.day, e.id)}
+                  className="surface-card flex w-full items-start gap-3 p-4 text-left"
+                >
+                  <div
+                    className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md border ${
+                      e.completed ? "border-primary bg-primary" : "border-line"
+                    }`}
+                  >
+                    {e.completed && <Check className="h-4 w-4 text-white" strokeWidth={3} />}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className={`font-semibold ${e.completed ? "text-muted line-through" : ""}`}>
+                      {e.name}
+                    </p>
+                    {e.muscle && <p className="text-xs text-muted">{e.muscle}</p>}
+                    {e.form_notes && (
+                      <p className="mt-2 text-xs leading-relaxed text-muted">{e.form_notes}</p>
+                    )}
+                  </div>
+
+                  <div className="shrink-0 text-right">
+                    <p className="tnum font-bold text-primary">
+                      {e.sets}×{e.reps}
+                    </p>
+                    <p className="tnum text-xs text-muted">{e.rest_seconds}s desc.</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {!workout.rest_day && (
+        <div className="fixed inset-x-0 bottom-0 border-t border-line bg-bg/95 backdrop-blur">
+          <div className="mx-auto max-w-app px-5 py-4">
+            <button
+              className="btn-brand"
+              disabled={!allDone && !workout.completed}
+              onClick={() => {
+                finishWorkout(workout.day);
+                navigate("/app");
+              }}
+            >
+              {workout.completed
+                ? "Treino concluído"
+                : allDone
+                  ? "Finalizar treino"
+                  : `Faltam ${total - doneCount} exercícios`}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

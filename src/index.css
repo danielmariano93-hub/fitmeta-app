@@ -2,173 +2,190 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
- * FitMeta — Design System (Nino)
- * Premium fitness app with identical branding
- */
-
 @layer base {
   :root {
-    /* Semantic Colors (HSL) */
-    --background: 250 38% 97%;
-    --foreground: 237 24% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 237 24% 8%;
-    --primary: 258 100% 59%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 256 100% 97%;
-    --secondary-foreground: 237 24% 8%;
-    --muted: 240 18% 96%;
-    --muted-foreground: 235 8% 46%;
-    --accent: 252 100% 97%;
-    --accent-foreground: 258 100% 59%;
-    --destructive: 348 53% 55%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 160 73% 31%;
-    --success-foreground: 0 0% 100%;
-    --warning: 34 100% 55%;
-    --warning-foreground: 237 24% 8%;
-    --border: 250 21% 92%;
-    --input: 250 21% 92%;
-    --ring: 258 100% 59%;
+    /* Base — violeta-preto, não preto neutro */
+    --bg: 258 40% 5%;
+    --surface: 255 34% 11%;
+    --surface-2: 254 33% 16%;
+    --line: 254 30% 24%;
 
-    /* Brand Colors */
-    --brand-violet: 252 100% 65%;
-    --brand-coral: 5 100% 69%;
-    --brand-amber: 246 100% 61%;
+    /* Acento Nino */
+    --primary: 258 100% 65%;
+    --primary-deep: 258 100% 59%;
+    --coral: 5 100% 69%;
+    --success: 162 65% 50%;
+    --warning: 34 100% 60%;
 
-    /* Radius */
+    --text: 255 60% 96%;
+    --muted: 255 20% 66%;
+
     --radius: 1rem;
-
-    /* Gradients */
-    --gradient-brand: linear-gradient(135deg, #6D4AFF 0%, #4338FF 54%, #FF6B5F 100%);
-    --gradient-brand-soft: linear-gradient(135deg, hsl(252 100% 65% / 0.12) 0%, hsl(5 100% 69% / 0.10) 100%);
-    --gradient-hero: linear-gradient(135deg, #17102E 0%, #3C1B78 54%, #6B2CFF 100%);
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(252 26% 10% / 0.04);
-    --shadow-card: 0 1px 3px 0 hsl(252 26% 10% / 0.04), 0 1px 2px -1px hsl(252 26% 10% / 0.04);
-    --shadow-lg: 0 10px 30px -12px hsl(252 57% 20% / 0.18);
-    --shadow-brand: 0 12px 40px -12px hsl(254 100% 62% / 0.45);
-    --shadow-hero: 0 8px 24px rgba(16, 17, 26, 0.06);
   }
 
-  .dark {
-    --background: 252 30% 6%;
-    --foreground: 250 33% 96%;
-    --card: 252 30% 10%;
-    --card-foreground: 250 33% 96%;
-    --primary: 254 100% 70%;
-    --primary-foreground: 252 30% 6%;
-    --secondary: 252 30% 14%;
-    --secondary-foreground: 250 33% 96%;
-    --muted: 252 30% 14%;
-    --muted-foreground: 255 8% 65%;
-    --border: 252 30% 18%;
-    --input: 252 30% 18%;
-    --ring: 254 100% 70%;
-  }
-}
-
-@layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--line));
+    -webkit-tap-highlight-color: transparent;
   }
 
   html {
-    -webkit-text-size-adjust: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
+    background: hsl(var(--bg));
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    margin: 0;
+    background: hsl(var(--bg));
+    color: hsl(var(--text));
     font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    max-width: 100%;
-    overflow-x: hidden;
+    font-feature-settings: "ss01", "cv11";
   }
 
-  h1, h2, h3, h4 {
-    font-family: "DM Sans", -apple-system, sans-serif;
-    letter-spacing: 0;
+  /* Números de dados sempre alinhados */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
   }
 
   :focus-visible {
-    outline: 2px solid hsl(var(--ring));
+    outline: 2px solid hsl(var(--primary));
     outline-offset: 2px;
-    border-radius: 4px;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
+  input,
+  select {
+    font-family: inherit;
+  }
+
+  /* Remove setas do number input */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 }
 
 @layer components {
-  /* Premium Card Component */
   .surface-card {
-    @apply bg-card rounded-2xl border border-border/60 p-5;
-    box-shadow: var(--shadow-card);
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--line));
+    border-radius: var(--radius);
   }
 
-  .surface-card-lg {
-    @apply bg-card rounded-3xl border border-border/60 p-6;
-    box-shadow: var(--shadow-lg);
-  }
-
-  /* Premium Button with Brand Gradient */
+  /* Botão principal: roxo sólido, sem gradiente decorativo */
   .btn-brand {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white transition-all;
-    background: var(--gradient-brand);
-    box-shadow: var(--shadow-brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: none;
+    border-radius: 0.875rem;
+    background: hsl(var(--primary));
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .btn-brand:active:not(:disabled) {
+    transform: scale(0.985);
+  }
+  .btn-brand:hover:not(:disabled) {
+    background: hsl(var(--primary) / 0.88);
+  }
+  .btn-brand:disabled {
+    background: hsl(var(--surface-2));
+    color: hsl(var(--muted));
+    cursor: not-allowed;
   }
 
-  .btn-brand:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 16px 44px -12px hsl(254 100% 62% / 0.55);
-  }
-
-  .btn-brand:active {
-    transform: translateY(0);
-  }
-
-  /* Ghost Button */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-foreground border border-border bg-card transition-colors hover:bg-secondary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.9rem 1.25rem;
+    border: 1px solid hsl(var(--line));
+    border-radius: 0.875rem;
+    background: transparent;
+    color: hsl(var(--text));
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
   }
 
-  /* Input Base */
+  /* Opção selecionável do onboarding */
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid hsl(var(--line));
+    border-radius: 0.875rem;
+    background: hsl(var(--surface));
+    color: hsl(var(--text));
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .opt:hover {
+    border-color: hsl(var(--primary) / 0.55);
+  }
+  .opt[data-on="true"] {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.14);
+  }
+
   .input-base {
-    @apply w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 1px solid hsl(var(--line));
+    border-radius: 0.75rem;
+    background: hsl(var(--surface));
+    color: hsl(var(--text));
+    font-size: 1rem;
+  }
+  .input-base::placeholder {
+    color: hsl(var(--muted));
+  }
+  .input-base:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
   }
 
-  /* Text Gradient Brand */
-  .text-gradient-brand {
-    background: var(--gradient-brand);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  /* Selo de letra do treino (A / B / C) */
+  .letter-badge {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: hsl(var(--primary) / 0.16);
+    color: hsl(var(--primary));
+    font-weight: 700;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: hsl(var(--surface-2));
+    color: hsl(var(--muted));
+    font-size: 0.72rem;
+    font-weight: 600;
   }
 }
 
-@layer utilities {
-  .bg-gradient-brand {
-    background: var(--gradient-brand);
-  }
-
-  .bg-gradient-brand-soft {
-    background: var(--gradient-brand-soft);
-  }
-
-  .text-balance {
-    text-wrap: balance;
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

@@ -1,55 +1,51 @@
-/* User Profile */
+export type Goal = "hipertrofia" | "emagrecimento" | "definicao" | "forca" | "resistencia" | "saude";
+
+export const GOALS: { id: Goal; label: string; hint: string }[] = [
+  { id: "hipertrofia", label: "Ganhar massa muscular", hint: "Volume e carga progressiva" },
+  { id: "emagrecimento", label: "Perder gordura", hint: "Déficit com preservação de massa" },
+  { id: "definicao", label: "Definir o corpo", hint: "Recomposição corporal" },
+  { id: "forca", label: "Ficar mais forte", hint: "Cargas altas, poucas repetições" },
+  { id: "resistencia", label: "Ganhar condicionamento", hint: "Fôlego e recuperação" },
+  { id: "saude", label: "Cuidar da saúde", hint: "Consistência acima de intensidade" },
+];
+
 export interface UserProfile {
   id: string;
-  email: string;
   created_at: string;
   fitness_level: "beginner" | "intermediate" | "advanced";
-  goal: "hipertrofia" | "emagrecimento" | "definição" | "força";
+  goals: Goal[];
+  primary_goal: Goal;
   frequency: 3 | 4 | 5 | 6;
-  gender: "M" | "F";
-  height: number; // cm
-  weight: number; // kg
-  target_weight: number; // kg
+  gender: "M" | "F" | "O";
+  height: number;
+  weight: number;
+  target_weight: number;
   dietary_restrictions: string[];
-  experience_years: number;
-}
-
-/* Workout Plan */
-export interface WorkoutPlan {
-  id: string;
-  user_id: string;
-  created_at: string;
-  start_date: string;
-  end_date: string;
-  frequency: 3 | 4 | 5 | 6;
-  workouts: WorkoutDay[];
-  nutritional_goals: NutritionalGoals;
-}
-
-export interface WorkoutDay {
-  day: number; // 1-30
-  type: string; // "A", "B", "C", etc
-  exercises: Exercise[];
-  notes?: string;
-  completed: boolean;
-  completed_at?: string;
 }
 
 export interface Exercise {
   id: string;
   name: string;
+  muscle: string;
   sets: number;
-  reps: number;
-  weight?: number;
-  weight_unit: "kg" | "lb";
+  reps: string;
   rest_seconds: number;
   form_notes?: string;
   completed: boolean;
-  reps_completed?: number;
-  weight_used?: number;
 }
 
-/* Nutritional Goals */
+export interface WorkoutDay {
+  day: number;
+  type: string;
+  title: string;
+  focus: string;
+  duration_min: number;
+  rest_day: boolean;
+  exercises: Exercise[];
+  completed: boolean;
+  completed_at?: string;
+}
+
 export interface NutritionalGoals {
   daily_calories: number;
   protein_grams: number;
@@ -58,37 +54,17 @@ export interface NutritionalGoals {
   water_liters: number;
 }
 
-/* Progress Tracking */
-export interface ProgressLog {
+export interface WorkoutPlan {
   id: string;
-  user_id: string;
-  date: string;
-  workout_day_id: string;
-  weight: number;
-  exercises_completed: number;
-  total_exercises: number;
-  notes: string;
-  water_intake: number;
-  sleep_hours: number;
-}
-
-/* Badges/Achievements */
-export interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  earned_at: string;
-  condition: string; // "7-day-streak", "30-days-complete", etc
-}
-
-/* Claude Request/Response */
-export interface PlanGenerationRequest {
-  user_profile: UserProfile;
-  system_prompt: string;
+  created_at: string;
+  summary: string;
+  frequency: 3 | 4 | 5 | 6;
+  workouts: WorkoutDay[];
+  nutritional_goals: NutritionalGoals;
 }
 
 export interface PlanGenerationResponse {
-  plan: WorkoutPlan;
   summary: string;
+  workouts: WorkoutDay[];
+  nutritional_goals: NutritionalGoals;
 }

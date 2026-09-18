@@ -1,169 +1,149 @@
 import React, { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { ChevronRight, Flame, Timer, Moon } from "lucide-react";
 import { useApp } from "@/context/AppContext";
-import { Calendar, Flame, TrendingUp } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, plan } = useApp();
 
-  if (!user || !plan) {
-    navigate("/onboarding");
-    return null;
-  }
+  // Hooks antes de qualquer return: o React exige ordem estável.
+  const workouts = plan?.workouts ?? [];
 
-  // Calculate streak
+  const today = useMemo(
+    () =>
+      workouts.find((w) => !w.completed && !w.rest_day) ??
+      workouts.find((w) => !w.completed) ??
+      workouts[0],
+    [workouts],
+  );
+
   const streak = useMemo(() => {
-    let count = 0;
-    for (let i = plan.workouts.length - 1; i >= 0; i--) {
-      if (plan.workouts[i].completed) {
-        count++;
-      } else {
-        break;
-      }
+    let s = 0;
+    for (const w of workouts) {
+      if (w.completed) s++;
+      else if (!w.rest_day) break;
     }
-    return count;
-  }, [plan]);
+    return s;
+  }, [workouts]);
 
-  // Get current day
-  const today = new Date().getDate();
-  const currentWorkout = plan.workouts.find((w) => w.day === Math.min(today, 30)) || plan.workouts[0];
+  if (!plan || !user || !today) return <Navigate to="/" replace />;
+
+  const done = plan.workouts.filter((w) => w.completed).length;
+  const trainingDays = plan.workouts.filter((w) => !w.rest_day).length;
+  const doneTraining = plan.workouts.filter((w) => w.completed && !w.rest_day).length;
+  const n = plan.nutritional_goals;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-brand text-white p-6 md:p-12">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold mb-2">Bem-vindo, {user.gender === "M" ? "💪" : "👸"}</h1>
-          <p className="text-white/80">Sua jornada de 30 dias já começou</p>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 md:px-12 py-12">
-        {/* Stats Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {/* Streak */}
-          <div className="surface-card">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="text-muted-foreground text-sm">Sequência</p>
-                <p className="text-4xl font-bold text-foreground">{streak}</p>
-              </div>
-              <div className="bg-warning/10 rounded-full p-3">
-                <Flame className="w-6 h-6 text-warning" />
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground">dias consecutivos</p>
-          </div>
-
-          {/* Progress */}
-          <div className="surface-card">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="text-muted-foreground text-sm">Progresso</p>
-                <p className="text-4xl font-bold text-foreground">
-                  {Math.round((plan.workouts.filter((w) => w.completed).length / 30) * 100)}%
-                </p>
-              </div>
-              <div className="bg-success/10 rounded-full p-3">
-                <TrendingUp className="w-6 h-6 text-success" />
-              </div>
-            </div>
-            <div className="w-full bg-border rounded-full h-2">
-              <div
-                className="bg-gradient-brand h-2 rounded-full transition-all"
-                style={{
-                  width: `${(plan.workouts.filter((w) => w.completed).length / 30) * 100}%`,
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Weight Target */}
-          <div className="surface-card">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="text-muted-foreground text-sm">Meta de Peso</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {user.weight}
-                  <span className="text-sm text-muted-foreground"> / {user.target_weight}kg</span>
-                </p>
-              </div>
-              <div className="bg-primary/10 rounded-full p-3">
-                <Calendar className="w-6 h-6 text-primary" />
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground">{user.target_weight - user.weight}kg para atingir</p>
-          </div>
-        </div>
-
-        {/* Current Workout */}
-        <div className="bg-gradient-brand-soft rounded-3xl p-8 mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <p className="text-muted-foreground mb-1">Treino de Hoje</p>
-              <h2 className="text-3xl font-bold text-foreground">
-                Dia {currentWorkout.day} • Treino {currentWorkout.type}
-              </h2>
-            </div>
-            <button
-              onClick={() => navigate(`/app/workout/${currentWorkout.day}`)}
-              className="btn-brand"
-            >
-              Iniciar Treino
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {currentWorkout.exercises.slice(0, 4).map((ex) => (
-              <div key={ex.id} className="bg-card rounded-2xl p-4">
-                <p className="font-semibold text-foreground text-sm mb-1">{ex.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {ex.sets}x{ex.reps} {ex.weight ? `- ${ex.weight}${ex.weight_unit}` : ""}
-                </p>
-              </div>
-            ))}
-          </div>
-          {currentWorkout.exercises.length > 4 && (
-            <p className="text-sm text-muted-foreground mt-4">
-              +{currentWorkout.exercises.length - 4} mais exercícios
-            </p>
+    <div className="min-h-screen bg-bg pb-24">
+      <div className="mx-auto max-w-app px-5 pt-8">
+        <div className="flex items-baseline justify-between">
+          <h1 className="text-2xl font-bold tracking-tight">Seu plano</h1>
+          {streak > 0 && (
+            <span className="chip text-coral">
+              <Flame className="h-3.5 w-3.5" />
+              {streak} seguidos
+            </span>
           )}
         </div>
 
-        {/* Calendar Overview */}
-        <div className="surface-card">
-          <h3 className="text-xl font-bold text-foreground mb-6">Seu Mês</h3>
-          <div className="grid grid-cols-7 gap-2">
-            {Array.from({ length: 30 }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => navigate(`/app/workout/${i + 1}`)}
-                className={`aspect-square rounded-lg font-semibold transition-all ${
-                  plan.workouts[i]?.completed
-                    ? "bg-success text-white"
-                    : i + 1 === today
-                      ? "bg-primary text-white ring-2 ring-primary/50"
-                      : "bg-secondary text-foreground hover:bg-muted"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+        {/* Herói: os 30 dias de uma vez */}
+        <div className="surface-card mt-6 p-4">
+          <div className="flex items-baseline justify-between">
+            <p className="text-sm font-semibold text-muted">Progresso</p>
+            <p className="tnum text-sm font-bold">
+              {doneTraining} de {trainingDays} treinos
+            </p>
+          </div>
+
+          <div className="mt-4 grid grid-cols-10 gap-1.5">
+            {plan.workouts.map((w) => {
+              const isToday = w.day === today.day;
+              let cls = "bg-surface2";
+              if (w.completed) cls = "bg-primary";
+              else if (w.rest_day) cls = "bg-surface2/50";
+              return (
+                <button
+                  key={w.day}
+                  onClick={() => navigate(`/app/workout/${w.day}`)}
+                  aria-label={`Dia ${w.day}`}
+                  className={`aspect-square rounded-[5px] ${cls} ${
+                    isToday ? "ring-2 ring-coral ring-offset-2 ring-offset-surface" : ""
+                  }`}
+                />
+              );
+            })}
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+            <span className="flex items-center gap-1.5">
+              <i className="h-2.5 w-2.5 rounded-sm bg-primary" /> Feito
+            </span>
+            <span className="flex items-center gap-1.5">
+              <i className="h-2.5 w-2.5 rounded-sm bg-surface2" /> A fazer
+            </span>
+            <span className="flex items-center gap-1.5">
+              <i className="h-2.5 w-2.5 rounded-sm ring-2 ring-coral" /> Hoje
+            </span>
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="flex gap-4 mt-12">
-          <button
-            onClick={() => navigate("/app/progress")}
-            className="btn-ghost flex-1"
-          >
-            Ver Progresso
-          </button>
+        {/* Treino de hoje */}
+        <h2 className="mb-3 mt-8 text-sm font-bold text-muted">
+          {today.rest_day ? "Hoje é descanso" : "Próximo treino"}
+        </h2>
+
+        <button
+          onClick={() => navigate(`/app/workout/${today.day}`)}
+          className="surface-card flex w-full items-center gap-3 p-4 text-left"
+        >
+          <div className="letter-badge">
+            {today.rest_day ? <Moon className="h-4 w-4" /> : today.type}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-bold">{today.title}</p>
+            <p className="text-sm text-muted">
+              Dia {today.day}
+              {!today.rest_day && ` · ${today.exercises.length} exercícios · ${today.duration_min} min`}
+            </p>
+          </div>
+          <ChevronRight className="h-5 w-5 shrink-0 text-muted" />
+        </button>
+
+        {/* Metas diárias */}
+        <h2 className="mb-3 mt-8 text-sm font-bold text-muted">Metas do dia</h2>
+        <div className="grid grid-cols-2 gap-2.5">
+          {[
+            { label: "Calorias", value: n.daily_calories, unit: "kcal" },
+            { label: "Proteína", value: n.protein_grams, unit: "g" },
+            { label: "Carboidrato", value: n.carbs_grams, unit: "g" },
+            { label: "Água", value: n.water_liters, unit: "L" },
+          ].map((m) => (
+            <div key={m.label} className="surface-card p-4">
+              <p className="text-xs font-semibold text-muted">{m.label}</p>
+              <p className="tnum mt-1 text-xl font-bold">
+                {m.value}
+                <span className="ml-1 text-sm font-medium text-muted">{m.unit}</span>
+              </p>
+            </div>
+          ))}
         </div>
+
+        {plan.summary && (
+          <div className="surface-card mt-6 p-4">
+            <p className="text-xs font-semibold text-muted">Por que o plano é assim</p>
+            <p className="mt-2 text-sm leading-relaxed">{plan.summary}</p>
+          </div>
+        )}
+
+        <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-muted">
+          <Timer className="h-3.5 w-3.5" />
+          {30 - done} dias restantes
+        </p>
       </div>
+
+      <BottomNav />
     </div>
   );
 };
